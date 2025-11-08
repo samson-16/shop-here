@@ -70,7 +70,7 @@ src/
 - Infinite scroll: ensure additional products load as you reach the end of the list
 - CRUD actions: create, edit, and delete products to confirm API integration
 - Favorites: add/remove items and verify persistence across views
-- Responsive design: test header navigation, burger menu, and product layout on mobile widths
+- Responsive design: header navigation, burger menu, and product layout on mobile widths
 
 ## Deployment
 
