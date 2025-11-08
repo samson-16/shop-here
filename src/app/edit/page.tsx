@@ -2,10 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import axiosInstance from "@/lib/axiosInstance";
+import { useAppDispatch } from "@/redux/hooks";
+import { updateProductLocal } from "@/redux/features/productSlice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Product } from "@/types/product";
+import toast from "react-hot-toast";
 
 interface FormState {
   title: string;
@@ -19,39 +24,41 @@ interface FormState {
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
+  const dispatch = useAppDispatch();
   const { id } = params;
 
   const [form, setForm] = useState<FormState | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [updatedProduct, setUpdatedProduct] = useState<Product | null>(null);
+  const [originalProduct, setOriginalProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     if (!id) return;
 
     const fetchProduct = async () => {
       try {
-        const apiUrl =
-          process.env.NEXT_PUBLIC_API_BASE_URL || "https://dummyjson.com";
-        const response = await fetch(`${apiUrl}/products/${id}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch product data.");
-        }
-        const product: Product = await response.json();
+        setIsLoading(true);
+        const { data } = await axiosInstance.get<Product>(`/products/${id}`);
+        setOriginalProduct(data);
         setForm({
-          title: product.title,
-          description: product.description,
-          price: String(product.price),
-          stock: String(product.stock),
-          brand: product.brand,
-          category: product.category,
+          title: data.title,
+          description: data.description,
+          price: String(data.price),
+          stock: String(data.stock),
+          brand: data.brand,
+          category: data.category,
         });
+        setError(null);
       } catch (fetchError) {
         const message =
           fetchError instanceof Error
             ? fetchError.message
-            : "Unexpected error.";
+            : "Failed to fetch product data.";
         setError(message);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -72,14 +79,15 @@ export default function EditProductPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!form) return;
+    if (!form || !originalProduct) return;
 
     setIsSubmitting(true);
     setError(null);
     setUpdatedProduct(null);
 
     try {
-      const payload = {
+      const updatedData: Product = {
+        ...originalProduct,
         title: form.title.trim(),
         description: form.description.trim(),
         price: Number(form.price),
@@ -88,35 +96,82 @@ export default function EditProductPage() {
         category: form.category.trim(),
       };
 
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL || "https://dummyjson.com";
-      const response = await fetch(`${apiUrl}/products/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("Unable to update product. Please try again.");
+      // Try to update via API (will work for existing products)
+      try {
+        await axiosInstance.patch(`/products/${id}`, {
+          title: updatedData.title,
+          description: updatedData.description,
+          price: updatedData.price,
+          stock: updatedData.stock,
+          brand: updatedData.brand,
+          category: updatedData.category,
+        });
+      } catch (apiError) {
+        // API update failed (e.g., product doesn't exist on server), but continue
+        console.log("API update failed, updating locally only");
       }
 
-      const data: Product = await response.json();
-      setUpdatedProduct(data);
+      // Always update Redux store locally
+      dispatch(updateProductLocal(updatedData));
+      setUpdatedProduct(updatedData);
+      toast.success("Product updated successfully!");
     } catch (submitError) {
       const message =
         submitError instanceof Error
           ? submitError.message
-          : "Unexpected error. Please try again.";
+          : "Unable to update product. Please try again.";
       setError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!form && !error) {
-    return <p className="text-center mt-10">Loading product...</p>;
+  if (isLoading) {
+    return (
+      <main className="mx-auto max-w-3xl space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-24" />
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="space-y-1">
+              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-1">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+            <Skeleton className="h-10 w-full" />
+          </CardContent>
+        </Card>
+      </main>
+    );
   }
 
   return (

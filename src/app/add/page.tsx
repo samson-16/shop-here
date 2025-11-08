@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import axiosInstance from "@/lib/axiosInstance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -66,21 +67,10 @@ export default function AddProductPage() {
         category: form.category.trim(),
       };
 
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL || "https://dummyjson.com";
-      const response = await fetch(`${apiUrl}/products/add`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("Unable to create product. Please try again.");
-      }
-
-      const data: Product = await response.json();
+      const { data } = await axiosInstance.post<Product>(
+        "/products/add",
+        payload
+      );
       setCreatedProduct(data);
       setForm(INITIAL_FORM);
       toast.success(`Product "${data.title}" created successfully!`);
@@ -88,7 +78,7 @@ export default function AddProductPage() {
       const message =
         submitError instanceof Error
           ? submitError.message
-          : "Unexpected error. Please try again.";
+          : "Unable to create product. Please try again.";
       setError(message);
       toast.error(message);
     } finally {

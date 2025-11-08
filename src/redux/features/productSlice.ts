@@ -67,11 +67,32 @@ export const deleteProduct = createAsyncThunk<number, number>(
   }
 );
 
+export const updateProduct = createAsyncThunk<Product, Product>(
+  "products/update",
+  async (product, { rejectWithValue }) => {
+    try {
+      const { data } = await axiosInstance.patch<Product>(
+        `/products/${product.id}`,
+        product
+      );
+      return data;
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to update product");
+    }
+  }
+);
+
 const productsSlice = createSlice({
   name: "products",
   initialState,
   reducers: {
     resetProducts: () => initialState,
+    updateProductLocal: (state, action: PayloadAction<Product>) => {
+      const index = state.list.findIndex((p) => p.id === action.payload.id);
+      if (index !== -1) {
+        state.list[index] = action.payload;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -107,9 +128,18 @@ const productsSlice = createSlice({
       })
       .addCase(deleteProduct.rejected, (state, action) => {
         state.error = action.payload as string;
+      })
+      .addCase(updateProduct.fulfilled, (state, action) => {
+        const index = state.list.findIndex((p) => p.id === action.payload.id);
+        if (index !== -1) {
+          state.list[index] = action.payload;
+        }
+      })
+      .addCase(updateProduct.rejected, (state, action) => {
+        state.error = action.payload as string;
       });
   },
 });
 
-export const { resetProducts } = productsSlice.actions;
+export const { resetProducts, updateProductLocal } = productsSlice.actions;
 export default productsSlice.reducer;

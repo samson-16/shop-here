@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useAppDispatch } from "@/redux/hooks";
+import { updateProductLocal } from "@/redux/features/productSlice";
 import axiosInstance from "@/lib/axiosInstance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Product } from "@/types/product";
+import toast from "react-hot-toast";
 
 interface FormState {
   title: string;
@@ -30,6 +33,7 @@ const EMPTY_FORM: FormState = {
 export default function EditProductPage() {
   const params = useParams<{ id: string | string[] }>();
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const idParam = Array.isArray(params?.id) ? params.id[0] : params?.id;
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -37,6 +41,7 @@ export default function EditProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [updatedProduct, setUpdatedProduct] = useState<Product | null>(null);
+  const [originalProduct, setOriginalProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     if (!idParam) {
@@ -54,6 +59,7 @@ export default function EditProductPage() {
           `/products/${idParam}`
         );
         if (!isMounted) return;
+        setOriginalProduct(data);
         setForm({
           title: data.title,
           description: data.description,
@@ -97,14 +103,15 @@ export default function EditProductPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!idParam) return;
+    if (!idParam || !originalProduct) return;
 
     setIsSubmitting(true);
     setError(null);
     setUpdatedProduct(null);
 
     try {
-      const payload = {
+      const updatedData: Product = {
+        ...originalProduct,
         title: form.title.trim(),
         description: form.description.trim(),
         price: Number(form.price),
@@ -113,26 +120,32 @@ export default function EditProductPage() {
         category: form.category.trim(),
       };
 
-      const { data } = await axiosInstance.patch<Product>(
-        `/products/${idParam}`,
-        payload
-      );
+      // Try to update via API (will work for existing products)
+      try {
+        await axiosInstance.patch(`/products/${idParam}`, {
+          title: updatedData.title,
+          description: updatedData.description,
+          price: updatedData.price,
+          stock: updatedData.stock,
+          brand: updatedData.brand,
+          category: updatedData.category,
+        });
+      } catch (apiError) {
+        // API update failed (e.g., product doesn't exist on server), but continue
+        console.log("API update failed, updating locally only");
+      }
 
-      setUpdatedProduct(data);
-      setForm({
-        title: data.title,
-        description: data.description,
-        price: String(data.price),
-        stock: String(data.stock),
-        brand: data.brand,
-        category: data.category,
-      });
+      // Always update Redux store locally
+      dispatch(updateProductLocal(updatedData));
+      setUpdatedProduct(updatedData);
+      toast.success("Product updated successfully!");
     } catch (submitError: unknown) {
       const message =
         submitError instanceof Error
           ? submitError.message
           : "Unable to update product. Please try again.";
       setError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

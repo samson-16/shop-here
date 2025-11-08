@@ -31,6 +31,7 @@ export default function ProductDetailsPage() {
   const dispatch = useAppDispatch();
   const favorites = useAppSelector((state) => state.favorites);
 
+  const productsInStore = useAppSelector((state) => state.products.list);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +43,17 @@ export default function ProductDetailsPage() {
     const fetchProduct = async () => {
       try {
         setLoading(true);
+
+        // First check if product exists in Redux store
+        const productInStore = productsInStore.find((p) => p.id === Number(id));
+        if (productInStore) {
+          setProduct(productInStore);
+          setSelectedImage(productInStore.thumbnail);
+          setLoading(false);
+          return;
+        }
+
+        // If not in store, fetch from API
         const { data } = await axiosInstance.get<Product>(`/products/${id}`);
         setProduct(data);
         setSelectedImage(data.thumbnail);
@@ -55,7 +67,7 @@ export default function ProductDetailsPage() {
     if (id) {
       fetchProduct();
     }
-  }, [id]);
+  }, [id, productsInStore]);
 
   useEffect(() => {
     const fetchRelatedProducts = async () => {
