@@ -57,6 +57,17 @@ export default function ProductDetailsPage() {
   const [quantity, setQuantity] = useState(1);
   const [visibleReviews, setVisibleReviews] = useState(10);
 
+  // Scroll to top on mount and whenever the product ID changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    // Force scroll with a slight delay to ensure it happens after any other scroll events
+    const timeoutId = setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 10);
+
+    return () => clearTimeout(timeoutId);
+  }, [id]);
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -79,7 +90,6 @@ export default function ProductDetailsPage() {
     };
 
     if (id) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
       setVisibleReviews(10);
       fetchProduct();
     }
@@ -170,29 +180,52 @@ export default function ProductDetailsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* 1. Product Gallery Section */}
-          <div className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="space-y-4"
+          >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
               className="relative aspect-square bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden"
             >
-              <Image
-                src={selectedImage}
-                alt={product.title}
-                fill
-                className="object-contain p-8"
-                priority
-              />
+              <motion.div
+                key={selectedImage}
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Image
+                  src={selectedImage}
+                  alt={product.title}
+                  fill
+                  className="object-contain p-8"
+                  priority
+                />
+              </motion.div>
             </motion.div>
 
             {/* Thumbnail Previews */}
             {product.images && product.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="grid grid-cols-4 gap-2"
+              >
                 {product.images.slice(0, 4).map((img, idx) => (
-                  <button
+                  <motion.button
                     key={idx}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: 0.3 + idx * 0.1 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => setSelectedImage(img)}
-                    className={`relative aspect-square bg-gray-50 dark:bg-gray-900 rounded-md overflow-hidden border-2 transition ${
+                    className={`relative aspect-square bg-gray-50 dark:bg-gray-900 rounded-md overflow-hidden border-2 transition-colors ${
                       selectedImage === img
                         ? "border-black dark:border-white"
                         : "border-transparent hover:border-gray-300"
@@ -204,35 +237,73 @@ export default function ProductDetailsPage() {
                       fill
                       className="object-contain p-2"
                     />
-                  </button>
+                  </motion.button>
                 ))}
-              </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
 
           {/* 2. Product Summary */}
-          <div className="space-y-6">
-            <div>
-              <Badge variant="outline" className="mb-2">
-                {product.category}
-              </Badge>
-              <h1 className="text-3xl font-bold mb-2">{product.title}</h1>
-              <p className="text-sm text-muted-foreground mb-3">
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+            className="space-y-6"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.35 }}
+              >
+                <Badge variant="outline" className="mb-2">
+                  {product.category}
+                </Badge>
+              </motion.div>
+              <motion.h1
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.4 }}
+                className="text-3xl font-bold mb-2"
+              >
+                {product.title}
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.45 }}
+                className="text-sm text-muted-foreground mb-3"
+              >
                 Brand: {product.brand}
-              </p>
+              </motion.p>
 
               {/* Rating */}
-              <div className="flex items-center gap-2 mb-4">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.5 }}
+                className="flex items-center gap-2 mb-4"
+              >
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
-                    <Star
+                    <motion.div
                       key={i}
-                      className={`h-4 w-4 ${
-                        i < Math.floor(product.rating)
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-gray-300"
-                      }`}
-                    />
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: 0.55 + i * 0.05 }}
+                    >
+                      <Star
+                        className={`h-4 w-4 ${
+                          i < Math.floor(product.rating)
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    </motion.div>
                   ))}
                 </div>
                 <span className="text-sm font-medium">
@@ -241,10 +312,15 @@ export default function ProductDetailsPage() {
                 <span className="text-sm text-muted-foreground">
                   ({product.reviews?.length || 0} reviews)
                 </span>
-              </div>
+              </motion.div>
 
               {/* Price */}
-              <div className="flex items-baseline gap-3 mb-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: 0.6 }}
+                className="flex items-baseline gap-3 mb-4"
+              >
                 {discountedPrice ? (
                   <>
                     <span className="text-3xl font-bold">
@@ -260,10 +336,15 @@ export default function ProductDetailsPage() {
                 ) : (
                   <span className="text-3xl font-bold">${product.price}</span>
                 )}
-              </div>
+              </motion.div>
 
               {/* Availability */}
-              <div className="flex items-center gap-2 mb-4">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.65 }}
+                className="flex items-center gap-2 mb-4"
+              >
                 <Badge variant={product.stock > 0 ? "default" : "destructive"}>
                   {product.stock > 0
                     ? `In Stock (${product.stock} units)`
@@ -274,73 +355,109 @@ export default function ProductDetailsPage() {
                     {product.availabilityStatus}
                   </span>
                 )}
-              </div>
+              </motion.div>
 
               {/* Description */}
-              <p className="text-muted-foreground leading-relaxed mb-4">
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.7 }}
+                className="text-muted-foreground leading-relaxed mb-4"
+              >
                 {product.description}
-              </p>
+              </motion.p>
 
               {/* Tags */}
               {product.tags && product.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.75 }}
+                  className="flex flex-wrap gap-2 mb-6"
+                >
                   {product.tags.map((tag, idx) => (
-                    <Badge key={idx} variant="secondary" className="text-xs">
-                      #{tag}
-                    </Badge>
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: 0.8 + idx * 0.05 }}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <Badge variant="secondary" className="text-xs">
+                        #{tag}
+                      </Badge>
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
 
-            <Separator />
+            <motion.div
+              initial={{ opacity: 0, scaleX: 0 }}
+              animate={{ opacity: 1, scaleX: 1 }}
+              transition={{ duration: 0.4, delay: 0.85 }}
+            >
+              <Separator />
+            </motion.div>
 
-            <div className="space-y-4">
-              <Card>
-                <CardContent className="p-4 space-y-3">
-                  {product.shippingInformation && (
-                    <div className="flex items-start gap-3">
-                      <Truck className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium">Shipping</p>
-                        <p className="text-xs text-muted-foreground">
-                          {product.shippingInformation}
-                        </p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.9 }}
+              className="space-y-4"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+              >
+                <Card>
+                  <CardContent className="p-4 space-y-3">
+                    {product.shippingInformation && (
+                      <div className="flex items-start gap-3">
+                        <Truck className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Shipping</p>
+                          <p className="text-xs text-muted-foreground">
+                            {product.shippingInformation}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {product.warrantyInformation && (
-                    <div className="flex items-start gap-3">
-                      <Shield className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium">Warranty</p>
-                        <p className="text-xs text-muted-foreground">
-                          {product.warrantyInformation}
-                        </p>
+                    )}
+                    {product.warrantyInformation && (
+                      <div className="flex items-start gap-3">
+                        <Shield className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Warranty</p>
+                          <p className="text-xs text-muted-foreground">
+                            {product.warrantyInformation}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {product.returnPolicy && (
-                    <div className="flex items-start gap-3">
-                      <RotateCcw className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium">Returns</p>
-                        <p className="text-xs text-muted-foreground">
-                          {product.returnPolicy}
-                        </p>
+                    )}
+                    {product.returnPolicy && (
+                      <div className="flex items-start gap-3">
+                        <RotateCcw className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Returns</p>
+                          <p className="text-xs text-muted-foreground">
+                            {product.returnPolicy}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
 
       {/* 4. Product Details / Specifications Section - Full Width */}
-      <div className="mb-12 bg-gray-50 dark:bg-gray-900/50">
-        <div className="px-8">
+      <div className="mb-12 bg-gray-50 dark:bg-gray-900/50 w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+        <div className="max-w-7xl mx-auto px-8">
           <Card className="border-0 shadow-none bg-transparent">
             <Tabs defaultValue="details" className="w-full">
               <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">

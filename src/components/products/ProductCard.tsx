@@ -60,7 +60,7 @@ export default function ProductCard({
       <Card className="group relative flex h-full flex-col overflow-hidden border-2 hover:border-primary/50 transition-colors mx-4">
         <CardHeader className="relative p-0">
           <Link href={`/product/${product.id}`} className="block">
-            <div className="relative h-[160px] sm:aspect-square w-full bg-muted overflow-hidden">
+            <div className="relative h-40 sm:aspect-square w-full bg-muted overflow-hidden">
               <Image
                 src={product.thumbnail}
                 alt={product.title}

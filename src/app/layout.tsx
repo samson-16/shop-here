@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/redux/providers";
 import { Toaster } from "react-hot-toast";
 import { Navigation, FloatingActionButton } from "@/components/layout";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -25,6 +26,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={poppins.className}>
         <Providers>
+          <ScrollToTop />
           <Navigation />
           <div className="container mx-auto">{children}</div>
           <FloatingActionButton />
