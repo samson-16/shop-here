@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, LogOut, User, Menu, X, Heart, Plus } from "lucide-react";
+import { Moon, Sun, LogOut, Menu, Heart, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -66,17 +66,6 @@ export default function Navigation() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-3">
-          {isAuthenticated && user && (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-2 text-sm"
-            >
-              <User className="h-4 w-4" />
-              <span>{user.username}</span>
-            </motion.div>
-          )}
-
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button asChild variant="outline" size="sm">
               <Link href="/favorites" className="flex items-center gap-2">
@@ -159,12 +148,6 @@ export default function Navigation() {
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
               <div className="flex flex-col gap-4 mt-6">
-                {isAuthenticated && user && (
-                  <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                    <User className="h-5 w-5" />
-                    <span className="font-medium">{user.username}</span>
-                  </div>
-                )}
 
                 <Button
                   asChild

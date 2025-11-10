@@ -92,14 +92,20 @@ export default function HomePage() {
       <FadeIn>
         <PageHeader title="Products" />
       </FadeIn>
+
+      {/* Filter and Search Side by Side */}
       <FadeIn delay={0.1}>
-        <SearchBar value={query} onChange={setQuery} />
-      </FadeIn>
-      <FadeIn delay={0.2}>
-        <CategoryFilter
-          selectedCategory={category}
-          onCategoryChange={handleCategoryChange}
-        />
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="w-full md:w-1/2">
+            <CategoryFilter
+              selectedCategory={category}
+              onCategoryChange={handleCategoryChange}
+            />
+          </div>
+          <div className="w-full md:w-1/2">
+            <SearchBar value={query} onChange={setQuery} />
+          </div>
+        </div>
       </FadeIn>
 
       {status === "loading" && list.length === 0 ? (
@@ -125,13 +131,13 @@ export default function HomePage() {
           <p className="text-center mt-10">Loading more...</p>
         </FadeIn>
       )}
-      {!hasMore && list.length > 0 && (
+      {/* {!hasMore && list.length > 0 && (
         <FadeIn>
           <p className="text-center mt-10 text-muted-foreground">
             You've reached the end. (Total: {list.length} products)
           </p>
         </FadeIn>
-      )}
+      )} */}
     </main>
   );
 }

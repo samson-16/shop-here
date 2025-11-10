@@ -51,16 +51,21 @@ export default function CategoryFilter({
 
   if (loading) {
     return (
-      <div className="mb-6 flex items-center gap-3">
-        <label className="text-sm font-medium">Filter by Category:</label>
-        <div className="h-10 w-[200px] bg-muted animate-pulse rounded-md" />
+      <div className="flex items-center gap-3">
+        <label className="text-sm font-medium whitespace-nowrap">
+          Filter by Category:
+        </label>
+        <div className="h-11 w-full bg-muted animate-pulse rounded-md" />
       </div>
     );
   }
 
   return (
-    <div className="mb-6 flex items-center gap-3">
-      <label htmlFor="category-filter" className="text-sm font-medium">
+    <div className="flex items-center gap-3">
+      <label
+        htmlFor="category-filter"
+        className="text-sm font-medium whitespace-nowrap"
+      >
         Filter by Category:
       </label>
       <Select
@@ -69,7 +74,7 @@ export default function CategoryFilter({
           onCategoryChange(value === "all" ? "" : value)
         }
       >
-        <SelectTrigger id="category-filter" className="w-[200px]">
+        <SelectTrigger id="category-filter" className="w-full h-11">
           <SelectValue placeholder="All Products" />
         </SelectTrigger>
         <SelectContent>

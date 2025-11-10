@@ -4,15 +4,31 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axiosInstance from "@/lib/axiosInstance";
 import { Product } from "@/types/product";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SkeletonCard } from "@/components/skeletonCard";
 import ProductCard from "@/components/productCard";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { toggleFavorite } from "@/redux/features/favoritesSlice";
 import { deleteProduct } from "@/redux/features/productSlice";
-import { ArrowLeft, Heart, Star } from "lucide-react";
+import {
+  ArrowLeft,
+  Heart,
+  Star,
+  Minus,
+  Plus,
+  ShoppingCart,
+  Truck,
+  Shield,
+  RotateCcw,
+  Package,
+  Ruler,
+  Weight,
+  Calendar,
+} from "lucide-react";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
@@ -30,21 +46,20 @@ export default function ProductDetailsPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const favorites = useAppSelector((state) => state.favorites);
-
   const productsInStore = useAppSelector((state) => state.products.list);
+
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-
-        // First check if product exists in Redux store
         const productInStore = productsInStore.find((p) => p.id === Number(id));
         if (productInStore) {
           setProduct(productInStore);
@@ -52,8 +67,6 @@ export default function ProductDetailsPage() {
           setLoading(false);
           return;
         }
-
-        // If not in store, fetch from API
         const { data } = await axiosInstance.get<Product>(`/products/${id}`);
         setProduct(data);
         setSelectedImage(data.thumbnail);
@@ -72,13 +85,11 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     const fetchRelatedProducts = async () => {
       if (!product) return;
-
       try {
         setLoadingRelated(true);
         const { data } = await axiosInstance.get<ApiResponse>(
           `/products/category/${product.category}?limit=4`
         );
-        // Exclude the current product
         const filtered = data.products.filter((p) => p.id !== product.id);
         setRelatedProducts(filtered);
       } catch (err: any) {
@@ -87,7 +98,6 @@ export default function ProductDetailsPage() {
         setLoadingRelated(false);
       }
     };
-
     fetchRelatedProducts();
   }, [product]);
 
@@ -96,23 +106,7 @@ export default function ProductDetailsPage() {
     if (prod) {
       const isFav = favorites.some((p) => p.id === prod.id);
       dispatch(toggleFavorite(prod));
-      if (isFav) {
-        toast.success("Removed from favorites");
-      } else {
-        toast.success("Added to favorites");
-      }
-    }
-  };
-
-  const handleToggleCurrentFavorite = () => {
-    if (product) {
-      const isFav = favorites.some((p) => p.id === product.id);
-      dispatch(toggleFavorite(product));
-      if (isFav) {
-        toast.success("Removed from favorites");
-      } else {
-        toast.success("Added to favorites");
-      }
+      toast.success(isFav ? "Removed from favorites" : "Added to favorites");
     }
   };
 
@@ -130,6 +124,16 @@ export default function ProductDetailsPage() {
     return favorites.some((p) => p.id === productId);
   };
 
+  const handleQuantityChange = (delta: number) => {
+    setQuantity((prev) =>
+      Math.max(1, Math.min(product?.stock || 1, prev + delta))
+    );
+  };
+
+  const discountedPrice = product?.discountPercentage
+    ? (product.price * (1 - product.discountPercentage / 100)).toFixed(2)
+    : null;
+
   if (loading) {
     return (
       <main className="p-6">
@@ -138,21 +142,11 @@ export default function ProductDetailsPage() {
     );
   }
 
-  if (error) {
+  if (error || !product) {
     return (
       <main className="p-6">
         <div className="text-center text-red-500">
-          <p>Error: {error}</p>
-        </div>
-      </main>
-    );
-  }
-
-  if (!product) {
-    return (
-      <main className="p-6">
-        <div className="text-center">
-          <p>Product not found</p>
+          <p>{error || "Product not found"}</p>
         </div>
       </main>
     );
@@ -160,151 +154,415 @@ export default function ProductDetailsPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      {/* Product Details Section */}
-      <div className="container mx-auto px-8 py-6 max-w-7xl">
-        {/* Go Back Button */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
+      <div className="px-8 py-6">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="gap-2 mb-6 px-0 hover:bg-transparent cursor-pointer"
         >
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="gap-2 mb-8 px-0 hover:bg-transparent"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Go Back
-          </Button>
-        </motion.div>
+          <ArrowLeft className="h-4 w-4" />
+          Go Back
+        </Button>
 
-        <div className="flex flex-col lg:flex-row gap-12 mb-20">
-          {/* Left: Image */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="shrink-0"
-          >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          {/* 1. Product Gallery Section */}
+          <div className="space-y-4">
             <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="relative w-full lg:w-[480px] h-[480px] bg-muted/20 rounded-lg overflow-hidden flex items-center justify-center"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="relative aspect-square bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden"
             >
               <Image
                 src={selectedImage}
                 alt={product.title}
                 fill
-                className="object-contain p-12"
+                className="object-contain p-8"
                 priority
               />
             </motion.div>
-          </motion.div>
 
-          {/* Right: Product Info */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex-1 max-w-2xl"
-          >
-            <div className="space-y-3">
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="text-xs text-muted-foreground"
-              >
+            {/* Thumbnail Previews */}
+            {product.images && product.images.length > 1 && (
+              <div className="grid grid-cols-4 gap-2">
+                {product.images.slice(0, 4).map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(img)}
+                    className={`relative aspect-square bg-gray-50 dark:bg-gray-900 rounded-md overflow-hidden border-2 transition ${
+                      selectedImage === img
+                        ? "border-black dark:border-white"
+                        : "border-transparent hover:border-gray-300"
+                    }`}
+                  >
+                    <Image
+                      src={img}
+                      alt={`${product.title} ${idx + 1}`}
+                      fill
+                      className="object-contain p-2"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 2. Product Summary */}
+          <div className="space-y-6">
+            <div>
+              <Badge variant="outline" className="mb-2">
                 {product.category}
-              </motion.p>
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-4xl font-bold leading-tight"
-              >
-                {product.title}
-              </motion.h1>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-3xl font-bold">${product.price}</span>
-                <div className="flex items-center gap-1 text-yellow-500">
-                  <Star className="h-4 w-4 fill-current" />
-                  <span className="text-sm font-medium text-foreground">
-                    {product.rating}
-                  </span>
+              </Badge>
+              <h1 className="text-3xl font-bold mb-2">{product.title}</h1>
+              <p className="text-sm text-muted-foreground mb-3">
+                Brand: {product.brand}
+              </p>
+
+              {/* Rating */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${
+                        i < Math.floor(product.rating)
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  ))}
                 </div>
-                <Badge
-                  variant="default"
-                  className="bg-black text-white hover:bg-black text-xs"
-                >
+                <span className="text-sm font-medium">
+                  {product.rating.toFixed(1)}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  ({product.reviews?.length || 0} reviews)
+                </span>
+              </div>
+
+              {/* Price */}
+              <div className="flex items-baseline gap-3 mb-4">
+                {discountedPrice ? (
+                  <>
+                    <span className="text-3xl font-bold">
+                      ${discountedPrice}
+                    </span>
+                    <span className="text-xl text-muted-foreground line-through">
+                      ${product.price}
+                    </span>
+                    <Badge variant="destructive">
+                      {product.discountPercentage}% OFF
+                    </Badge>
+                  </>
+                ) : (
+                  <span className="text-3xl font-bold">${product.price}</span>
+                )}
+              </div>
+
+              {/* Availability */}
+              <div className="flex items-center gap-2 mb-4">
+                <Badge variant={product.stock > 0 ? "default" : "destructive"}>
                   {product.stock > 0
-                    ? `${product.stock} in stock`
+                    ? `In Stock (${product.stock} units)`
                     : "Out of Stock"}
                 </Badge>
+                {product.availabilityStatus && (
+                  <span className="text-sm text-muted-foreground">
+                    {product.availabilityStatus}
+                  </span>
+                )}
               </div>
-              <p className="text-muted-foreground leading-relaxed text-base pt-2">
+
+              {/* Description */}
+              <p className="text-muted-foreground leading-relaxed mb-4">
                 {product.description}
               </p>
+
+              {/* Tags */}
+              {product.tags && product.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {product.tags.map((tag, idx) => (
+                    <Badge key={idx} variant="secondary" className="text-xs">
+                      #{tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Details Section */}
-            <div className="mt-6 pt-6 border-t">
-              <h3 className="font-semibold mb-3">Details:</h3>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Brand: </span>
-                  <span className="font-medium">{product.brand}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Stock: </span>
-                  <span className="font-medium">{product.stock} units</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Category: </span>
-                  <span className="font-medium">{product.category}</span>
-                </div>
-              </div>
+            <Separator />
+
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="p-4 space-y-3">
+                  {product.shippingInformation && (
+                    <div className="flex items-start gap-3">
+                      <Truck className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Shipping</p>
+                        <p className="text-xs text-muted-foreground">
+                          {product.shippingInformation}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {product.warrantyInformation && (
+                    <div className="flex items-start gap-3">
+                      <Shield className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Warranty</p>
+                        <p className="text-xs text-muted-foreground">
+                          {product.warrantyInformation}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {product.returnPolicy && (
+                    <div className="flex items-start gap-3">
+                      <RotateCcw className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Returns</p>
+                        <p className="text-xs text-muted-foreground">
+                          {product.returnPolicy}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
-
-            {/* Add to Favorites Button */}
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                variant="outline"
-                className="w-full gap-2 h-11 mt-6"
-                onClick={handleToggleCurrentFavorite}
-              >
-                <Heart
-                  className={`h-4 w-4 ${
-                    isFavorite(product.id) ? "fill-current text-red-500" : ""
-                  }`}
-                />
-                Add to Favorites
-              </Button>
-            </motion.div>
-
-            {/* Login Message */}
-            {/* <div className="bg-muted/40 p-4 rounded-md text-center text-sm text-muted-foreground mt-4">
-              Please login to add items to cart or favorites
-            </div> */}
-          </motion.div>
+          </div>
         </div>
+      </div>
 
-        {/* Related Products Section */}
+      {/* 4. Product Details / Specifications Section - Full Width */}
+      <div className="mb-12 bg-gray-50 dark:bg-gray-900/50">
+        <div className="px-8">
+          <Card className="border-0 shadow-none bg-transparent">
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
+                <TabsTrigger value="details" className="rounded-none">
+                  Details
+                </TabsTrigger>
+                <TabsTrigger value="specifications" className="rounded-none">
+                  Specifications
+                </TabsTrigger>
+                <TabsTrigger value="reviews" className="rounded-none">
+                  Reviews ({product.reviews?.length || 0})
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="details" className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="font-semibold mb-3">Product Information</h3>
+                    <dl className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <dt className="text-muted-foreground">SKU:</dt>
+                        <dd className="font-medium">{product.sku}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-muted-foreground">Barcode:</dt>
+                        <dd className="font-medium">{product.barcode}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-muted-foreground">Brand:</dt>
+                        <dd className="font-medium">{product.brand}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-muted-foreground">Category:</dt>
+                        <dd className="font-medium capitalize">
+                          {product.category}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold mb-3">Dimensions & Weight</h3>
+                    <dl className="space-y-2 text-sm">
+                      {product.dimensions && (
+                        <>
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground flex items-center gap-1">
+                              <Ruler className="h-3 w-3" /> Width:
+                            </dt>
+                            <dd className="font-medium">
+                              {product.dimensions.width} cm
+                            </dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground flex items-center gap-1">
+                              <Ruler className="h-3 w-3" /> Height:
+                            </dt>
+                            <dd className="font-medium">
+                              {product.dimensions.height} cm
+                            </dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground flex items-center gap-1">
+                              <Package className="h-3 w-3" /> Depth:
+                            </dt>
+                            <dd className="font-medium">
+                              {product.dimensions.depth} cm
+                            </dd>
+                          </div>
+                        </>
+                      )}
+                      <div className="flex justify-between">
+                        <dt className="text-muted-foreground flex items-center gap-1">
+                          <Weight className="h-3 w-3" /> Weight:
+                        </dt>
+                        <dd className="font-medium">{product.weight} kg</dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+
+                {product.meta && (
+                  <div className="mt-6 pt-6 border-t">
+                    <h3 className="font-semibold mb-3">
+                      Additional Information
+                    </h3>
+                    <dl className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <dt className="text-muted-foreground flex items-center gap-1">
+                          <Calendar className="h-3 w-3" /> Created:
+                        </dt>
+                        <dd className="font-medium">
+                          {new Date(
+                            product.meta.createdAt
+                          ).toLocaleDateString()}
+                        </dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-muted-foreground flex items-center gap-1">
+                          <Calendar className="h-3 w-3" /> Updated:
+                        </dt>
+                        <dd className="font-medium">
+                          {new Date(
+                            product.meta.updatedAt
+                          ).toLocaleDateString()}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="specifications" className="p-6">
+                <div className="prose dark:prose-invert max-w-none">
+                  <p className="text-muted-foreground">{product.description}</p>
+                  {product.tags && product.tags.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="text-sm font-semibold mb-2">Tags:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {product.tags.map((tag, idx) => (
+                          <Badge key={idx} variant="outline">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="reviews" className="p-6">
+                {/* 5. Reviews Section */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-6">
+                    <div className="text-center">
+                      <div className="text-4xl font-bold">
+                        {product.rating.toFixed(1)}
+                      </div>
+                      <div className="flex items-center gap-1 mt-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < Math.floor(product.rating)
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {product.reviews?.length || 0} reviews
+                      </p>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {product.reviews && product.reviews.length > 0 ? (
+                    <div className="space-y-4">
+                      {product.reviews.map((review, idx) => (
+                        <Card key={idx}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <div>
+                                <p className="font-semibold">
+                                  {review.reviewerName}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {review.reviewerEmail}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-3 w-3 ${
+                                      i < review.rating
+                                        ? "fill-yellow-400 text-yellow-400"
+                                        : "text-gray-300"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {review.comment}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(review.date).toLocaleDateString()}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-center text-muted-foreground py-8">
+                      No reviews yet. Be the first to review this product!
+                    </p>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </Card>
+        </div>
+      </div>
+
+      {/* 6. Related Products */}
+      <div className="pr-8 pb-12">
         {relatedProducts.length > 0 && (
-          <section className="mt-16">
+          <section>
             <div className="mb-6">
               <h2 className="text-2xl font-bold mb-1">Related Products</h2>
               <p className="text-sm text-muted-foreground">
-                Other products in {product.category}
+                More products in {product.category}
               </p>
             </div>
             {loadingRelated ? (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {Array.from({ length: 3 }).map((_, i) => (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => (
                   <SkeletonCard key={i} />
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {relatedProducts.slice(0, 3).map((relatedProduct) => (
                   <ProductCard
                     key={relatedProduct.id}

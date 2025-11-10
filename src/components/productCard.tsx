@@ -1,13 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Heart, HeartOff, Pencil, Trash2 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+import { Heart, Pencil, Trash2, Star } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { Product } from "@/types/product";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -46,58 +41,81 @@ export default function ProductCard({
   };
 
   return (
-    <Card className="group relative flex h-full flex-col overflow-hidden">
-      <CardHeader className="relative p-0">
-        <Link href={`/product/${product.id}`} className="block">
-          <div className="relative aspect-square w-full bg-muted">
-            <Image
-              src={product.thumbnail}
-              alt={product.title}
-              fill
-              priority={false}
-              sizes="(min-width: 768px) 240px, 100vw"
-              className="object-cover transition duration-500 group-hover:scale-105"
-            />
-          </div>
-        </Link>
+    <Card className="group relative flex flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-200">
+      {/* Image Section */}
+      <Link href={`/product/${product.id}`} className="block relative">
+        <div className="relative h-40 w-full bg-gray-50 dark:bg-gray-900 rounded-t-lg overflow-hidden">
+          <Image
+            src={product.thumbnail}
+            alt={product.title}
+            fill
+            priority={false}
+            sizes="(min-width: 768px) 200px, 100vw"
+            className="object-contain p-2 transition duration-300 group-hover:scale-105"
+          />
+        </div>
 
+        {/* Favorite Button */}
         <button
           type="button"
-          onClick={() => onToggleFavorite(product.id)}
-          className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-primary shadow transition hover:bg-background"
+          onClick={(e) => {
+            e.preventDefault();
+            onToggleFavorite(product.id);
+          }}
+          className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/95 dark:bg-gray-800/95 shadow-sm transition hover:scale-110"
           aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         >
-          {isFavorite ? (
-            <Heart className="h-5 w-5 fill-current" />
-          ) : (
-            <HeartOff className="h-5 w-5" />
-          )}
+          <Heart
+            className={`h-3.5 w-3.5 ${
+              isFavorite
+                ? "fill-red-500 text-red-500"
+                : "text-gray-500 dark:text-gray-400"
+            }`}
+          />
         </button>
-      </CardHeader>
+      </Link>
 
-      <CardContent className="flex flex-1 flex-col gap-2 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-2 text-base font-semibold">
-            <Link href={`/product/${product.id}`}>{product.title}</Link>
-          </h3>
-          <span className="min-w-max text-lg font-semibold">
+      {/* Content Section */}
+      <div className="flex flex-col p-2.5">
+        {/* Title and Price */}
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <Link href={`/product/${product.id}`} className="flex-1 min-w-0">
+            <h3 className="line-clamp-1 text-sm font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+              {product.title}
+            </h3>
+          </Link>
+          <span className="text-base font-bold text-gray-900 dark:text-white whitespace-nowrap">
             ${product.price}
           </span>
         </div>
-      </CardContent>
 
-      <CardFooter className="flex items-center justify-between gap-3 px-4 pb-4 text-sm text-muted-foreground">
-        <div className="flex flex-col">
-          <span className="font-medium capitalize">{product.category}</span>
-          <span>⭐ {product.rating.toFixed(1)}</span>
+        {/* Category & Rating */}
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+            {product.category}
+          </span>
+          <div className="flex items-center gap-0.5">
+            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+              {product.rating.toFixed(1)}
+            </span>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" asChild className="min-w-max">
+
+        {/* Action Buttons */}
+        <div className="flex justify-between gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="h-7 text-xs px-3 flex-shrink-0"
+          >
             <Link
               href={`/edit/${product.id}`}
               className="inline-flex items-center gap-1"
             >
-              <Pencil className="size-4" /> Edit
+              <Pencil className="h-3 w-3" />
+              Edit
             </Link>
           </Button>
           <AlertDialog>
@@ -105,10 +123,10 @@ export default function ProductCard({
               <Button
                 variant="destructive"
                 size="sm"
-                className="min-w-max"
+                className="h-7 px-3 flex-shrink-0"
                 disabled={isDeleting}
               >
-                <Trash2 className="size-4" />
+                <Trash2 className="h-3 w-3" />
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -131,7 +149,7 @@ export default function ProductCard({
             </AlertDialogContent>
           </AlertDialog>
         </div>
-      </CardFooter>
+      </div>
     </Card>
   );
 }
