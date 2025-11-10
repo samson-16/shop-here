@@ -55,6 +55,7 @@ export default function ProductDetailsPage() {
   const [loadingRelated, setLoadingRelated] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
+  const [visibleReviews, setVisibleReviews] = useState(10);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -78,6 +79,8 @@ export default function ProductDetailsPage() {
     };
 
     if (id) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setVisibleReviews(10);
       fetchProduct();
     }
   }, [id, productsInStore]);
@@ -497,42 +500,60 @@ export default function ProductDetailsPage() {
                   <Separator />
 
                   {product.reviews && product.reviews.length > 0 ? (
-                    <div className="space-y-4">
-                      {product.reviews.map((review, idx) => (
-                        <Card key={idx}>
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <p className="font-semibold">
-                                  {review.reviewerName}
+                    <>
+                      <div className="space-y-4">
+                        {product.reviews
+                          .slice(0, visibleReviews)
+                          .map((review, idx) => (
+                            <Card key={idx}>
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div>
+                                    <p className="font-semibold">
+                                      {review.reviewerName}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {review.reviewerEmail}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`h-3 w-3 ${
+                                          i < review.rating
+                                            ? "fill-yellow-400 text-yellow-400"
+                                            : "text-gray-300"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-2">
+                                  {review.comment}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  {review.reviewerEmail}
+                                  {new Date(review.date).toLocaleDateString()}
                                 </p>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-3 w-3 ${
-                                      i < review.rating
-                                        ? "fill-yellow-400 text-yellow-400"
-                                        : "text-gray-300"
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-2">
-                              {review.comment}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(review.date).toLocaleDateString()}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                      </div>
+
+                      {product.reviews.length > visibleReviews && (
+                        <div className="flex justify-center mt-6">
+                          <Button
+                            variant="outline"
+                            onClick={() =>
+                              setVisibleReviews((prev) => prev + 10)
+                            }
+                          >
+                            Load More Reviews (
+                            {product.reviews.length - visibleReviews} remaining)
+                          </Button>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <p className="text-center text-muted-foreground py-8">
                       No reviews yet. Be the first to review this product!
@@ -549,20 +570,20 @@ export default function ProductDetailsPage() {
       <div className="pr-8 pb-12">
         {relatedProducts.length > 0 && (
           <section>
-            <div className="mb-6">
+            <div className="mb-6 ml-2">
               <h2 className="text-2xl font-bold mb-1">Related Products</h2>
               <p className="text-sm text-muted-foreground">
                 More products in {product.category}
               </p>
             </div>
             {loadingRelated ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <SkeletonCard key={i} />
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid ml-8 lg:ml-0 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {relatedProducts.slice(0, 3).map((relatedProduct) => (
                   <ProductCard
                     key={relatedProduct.id}

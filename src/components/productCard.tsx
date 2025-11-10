@@ -44,14 +44,14 @@ export default function ProductCard({
     <Card className="group relative flex flex-col overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-200">
       {/* Image Section */}
       <Link href={`/product/${product.id}`} className="block relative">
-        <div className="relative h-40 w-full bg-gray-50 dark:bg-gray-900 rounded-t-lg overflow-hidden">
+        <div className="relative h-24 sm:h-32 w-full bg-gray-50 dark:bg-gray-900 rounded-t-lg overflow-hidden">
           <Image
             src={product.thumbnail}
             alt={product.title}
             fill
             priority={false}
             sizes="(min-width: 768px) 200px, 100vw"
-            className="object-contain p-2 transition duration-300 group-hover:scale-105"
+            className="object-contain p-1.5 sm:p-2 transition duration-300 group-hover:scale-105"
           />
         </div>
 
@@ -76,21 +76,21 @@ export default function ProductCard({
       </Link>
 
       {/* Content Section */}
-      <div className="flex flex-col p-2.5">
+      <div className="flex flex-col p-2 sm:p-2.5">
         {/* Title and Price */}
-        <div className="flex items-start justify-between gap-2 mb-1">
+        <div className="flex items-start justify-between gap-1.5 sm:gap-2 mb-1">
           <Link href={`/product/${product.id}`} className="flex-1 min-w-0">
-            <h3 className="line-clamp-1 text-sm font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <h3 className="line-clamp-1 text-xs sm:text-sm font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               {product.title}
             </h3>
           </Link>
-          <span className="text-base font-bold text-gray-900 dark:text-white whitespace-nowrap">
+          <span className="text-sm sm:text-base font-bold text-gray-900 dark:text-white whitespace-nowrap">
             ${product.price}
           </span>
         </div>
 
         {/* Category & Rating */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-1.5 sm:mb-2">
           <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
             {product.category}
           </span>
@@ -103,12 +103,12 @@ export default function ProductCard({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-between gap-2">
+        <div className="flex justify-between gap-1.5 sm:gap-2">
           <Button
             variant="outline"
             size="sm"
             asChild
-            className="h-7 text-xs px-3 flex-shrink-0"
+            className="h-6 sm:h-7 text-xs px-2 sm:px-3 shrink-0"
           >
             <Link
               href={`/edit/${product.id}`}
@@ -123,7 +123,7 @@ export default function ProductCard({
               <Button
                 variant="destructive"
                 size="sm"
-                className="h-7 px-3 flex-shrink-0"
+                className="h-6 sm:h-7 px-2 sm:px-3 shrink-0"
                 disabled={isDeleting}
               >
                 <Trash2 className="h-3 w-3" />

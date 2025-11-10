@@ -57,10 +57,10 @@ export default function ProductCard({
       whileHover={{ y: -8 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="group relative flex h-full flex-col overflow-hidden border-2 hover:border-primary/50 transition-colors">
+      <Card className="group relative flex h-full flex-col overflow-hidden border-2 hover:border-primary/50 transition-colors mx-4">
         <CardHeader className="relative p-0">
           <Link href={`/product/${product.id}`} className="block">
-            <div className="relative aspect-square w-full bg-muted overflow-hidden">
+            <div className="relative h-[160px] sm:aspect-square w-full bg-muted overflow-hidden">
               <Image
                 src={product.thumbnail}
                 alt={product.title}
@@ -75,7 +75,7 @@ export default function ProductCard({
           <motion.button
             type="button"
             onClick={() => onToggleFavorite(product.id)}
-            className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-primary shadow backdrop-blur-sm"
+            className="absolute right-2 top-2 sm:right-3 sm:top-3 inline-flex h-6 w-6 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-background/80 text-primary shadow backdrop-blur-sm"
             aria-label={
               isFavorite ? "Remove from favorites" : "Add to favorites"
             }
@@ -88,37 +88,44 @@ export default function ProductCard({
               transition={{ duration: 0.3 }}
             >
               {isFavorite ? (
-                <Heart className="h-5 w-5 fill-current text-red-500" />
+                <Heart className="h-3 w-3 sm:h-5 sm:w-5 fill-current text-red-500" />
               ) : (
-                <HeartOff className="h-5 w-5" />
+                <HeartOff className="h-3 w-3 sm:h-5 sm:w-5" />
               )}
             </motion.div>
           </motion.button>
         </CardHeader>
 
-        <CardContent className="flex flex-1 flex-col gap-2 p-4">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="line-clamp-2 text-base font-semibold">
+        <CardContent className="flex flex-1 flex-col gap-1 sm:gap-2 p-2 sm:p-4">
+          <div className="flex items-start justify-between gap-1.5 sm:gap-2">
+            <h3 className="line-clamp-1 sm:line-clamp-2 text-sm sm:text-base font-semibold">
               <Link href={`/product/${product.id}`}>{product.title}</Link>
             </h3>
-            <span className="min-w-max text-lg font-semibold">
+            <span className="min-w-max text-sm sm:text-lg font-semibold">
               ${product.price}
             </span>
           </div>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between gap-3 px-4 pb-4 text-sm text-muted-foreground">
-          <div className="flex flex-col">
-            <span className="font-medium capitalize">{product.category}</span>
-            <span>⭐ {product.rating.toFixed(1)}</span>
+        <CardFooter className="flex items-center justify-between gap-2 sm:gap-3 px-2 pb-2 sm:px-4 sm:pb-4 text-xs sm:text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 sm:flex-col sm:items-start sm:gap-0.5">
+            <span className="font-medium capitalize text-xs sm:text-sm">
+              {product.category}
+            </span>
+            <span className="text-xs">⭐ {product.rating.toFixed(1)}</span>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" asChild className="min-w-max">
+          <div className="flex gap-1.5 sm:gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="min-w-max h-7 sm:h-9 px-2 sm:px-3 text-xs"
+            >
               <Link
                 href={`/edit/${product.id}`}
                 className="inline-flex items-center gap-1"
               >
-                <Pencil className="size-4" /> Edit
+                <Pencil className="size-3 sm:size-4" /> Edit
               </Link>
             </Button>
             <AlertDialog>
@@ -126,10 +133,10 @@ export default function ProductCard({
                 <Button
                   variant="destructive"
                   size="sm"
-                  className="min-w-max"
+                  className="min-w-max h-7 sm:h-9 px-2 sm:px-3"
                   disabled={isDeleting}
                 >
-                  <Trash2 className="size-4" />
+                  <Trash2 className="size-3 sm:size-4" />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>

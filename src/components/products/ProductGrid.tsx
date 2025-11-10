@@ -30,7 +30,7 @@ export default function ProductGrid({
   lastProductRef,
 }: ProductGridProps) {
   return (
-    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
       {products.map((product, index) => {
         const isLastProduct = lastProductRef && products.length === index + 1;
 
